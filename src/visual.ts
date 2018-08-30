@@ -38,8 +38,11 @@ module powerbi.extensibility.visual {
 
         let objects = dataViews[0].metadata.objects;
        
-        var selectionIDs = Utils.getSelectionIds(dataViews[0], host);
+        if ( typeof dataViews[0].table.identity === "undefined" ) {
+            return { dataPoints: [] }
+        }
 
+        var selectionIDs = Utils.getSelectionIds(dataViews[0], host);
         let imageUrlIndex = Utils.getColumnIndex(dataViews[0].metadata, "imageUrl");
         
         let visualDataPoints: VisualDataPoint[] = [];
@@ -116,10 +119,21 @@ module powerbi.extensibility.visual {
         }
 
         public updateImage() {
-            let imgUrl = this.model.dataPoints[this.currentImageIndex].imageUrl
-            this.divImage.innerHTML = "<img style='height: 100%; width: 100%; object-fit: contain' src='"+imgUrl+"'>";
-            this.divLeftArrow.style.display = this.currentImageIndex === 0 ? "none" : "";
-            this.divRightArrow.style.display = this.currentImageIndex === (this.model.dataPoints.length-1) ? "none" : "";
+            let imgUrl = "#";
+            let currentImageIndex = 0;
+            let lastImageIndex = 0;
+            let imageExists = true;
+            if ( this.model.dataPoints.length !== 0 ) {
+                imgUrl = this.model.dataPoints[this.currentImageIndex].imageUrl
+                currentImageIndex = this.currentImageIndex;
+                lastImageIndex = this.model.dataPoints.length-1;
+            } else {
+                imageExists = false;
+            }
+            
+            this.divImage.innerHTML = imageExists ? "<img style='height: 100%; width: 100%; object-fit: contain' src='"+imgUrl+"'>" : "";
+            this.divLeftArrow.style.display = currentImageIndex === 0 ? "none" : "";
+            this.divRightArrow.style.display = currentImageIndex === lastImageIndex ? "none" : "";
         }
 
         private static parseSettings(dataView: DataView): VisualSettings {
